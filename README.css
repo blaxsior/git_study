@@ -1,0 +1,16 @@
+span {
+    color:yellow;
+}
+
+h2 {
+    background-color: rgb(53, 45, 56);
+}
+
+h3 {
+    background-color: slateblue;
+}
+
+h2, h3 {
+    margin: 3rem 0;
+    color: white;
+}
