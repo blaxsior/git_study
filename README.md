@@ -321,6 +321,12 @@ $git reset HEAD CONTRIBUTING.md
 $ git checkout -- CONTRIBUTING.md
 </pre>
 <p>checkout 사용시, 변경된 내용을 모두 지우고 원 파일로 덮어쓴다. 또한 이 내용은 돌이킬 수 없음에 주의하자.</p>
+<h3>커밋 취소</h3>
+<pre>
+$ git reset --mixed HEAD^ // 커밋을 취소하고 unstaged 상태로
+$ git reset --soft HEAD^ // 커밋 취소, staged 상태로
+$ git reset --HARD HEAD^ // 커밋 취소, 파일 삭제
+</pre>
 <h2>리모트 저장소</h2>
 <p>인터넷이나 네트워크 어딘가에 있는 저장소. 저장소의 특성에 따라 push/pull 가 다를 수 있다. 이름은 원격 저장소이지만, 반드시 외부에 있을 필요는 없으며, push/pull 여부가 더 중요한 점이다.</p>
 <h3>리모트 저장소 확인</h3>
@@ -455,6 +461,10 @@ checkout을 통해 브랜치를 이동하면 워킹 디렉토리 역시 해당 �
 <li>git checkout : 해당 브랜치로 이동</li>
 <li>git commit : 커밋 작업</li>
 </ul>
+<h3>브랜치 목록 보기</h3>
+<pre>
+$ git branch -l
+</pre>
 <h2>Branch & Merge</h2>
 <p>중요한 문제 혹은 이슈가 발생하여 이를 처리할 필요가 있을 때 브랜치를 만들어 처리할 수 있다.
 <ol>
@@ -468,7 +478,144 @@ checkout을 통해 브랜치를 이동하면 워킹 디렉토리 역시 해당 �
 <pre>
 $ git checkout <span>-b</span> [branch]
 </pre>
-<h3></h3>
+<h3>브랜치 합치기</h3>
 <pre>
 $ git merge [target] // 현재 브랜치와 타겟을 합친다
 </pre>
+<ul>
+<li>Fast forward : target이 현재 브랜치 이후의 커밋을 가리키면 현재 브랜치가 target이 되도록 브랜치 포인터를 단순히 이동한다.</li>
+<li>recursive(3-way Merge) : 브랜치 포인터를 단순히 최신 커밋으로 옮기는 대신, 3-way Merge 결과를 <span>별도의 커밋으로</span> 만들고, 해당 브랜치가 그 커밋을 가리키도록 이동시킨다. </li>
+</ul>
+<h3>브랜치 삭제</h3>
+<pre>
+$ git branch -d [hotfix]
+</pre>
+<h3>브랜치 Merge 에서의 충돌</h3>
+<p>다른 브랜치에서 같은 파일의 한 부분을 동시에 수정하는 경우, 해당 부분에 대해서는 Merge 할 수 없고, 대신 conflict 메시지를 출력하게 된다. 이 경우 충돌을 개발자가 해결하지 못하면 Merge가 불가능하다. 이 부분은 개발자가 직접 수정해야 한다.</p>
+<pre>
+$ git status // 충돌의 원인을 알 수 있다
+</pre>
+<pre>
+$ git mergetool // vims 등을 이용하여 충돌 처리. vscode는 그냥 gui상에서 처리 가능
+</pre>
+<p>충돌이 발생하여, 이를 해결한 이후에는 따로 커밋을 해야한다.</p>
+<h2>브랜치 관리</h2>
+<pre>
+$ git branch -v // 커밋 메시지와 함끼 브랜치 정보 보기
+$ git branch --merged/--no-merged [branch] : merged/no-merged 브랜치 정보 보기
+</pre>
+<pre>
+$ git branch --merged
+  iss54 // 이미 merge 되었기 때문에 삭제해도 상관 없다.
+* master
+</pre>
+<pre>
+$ git branch --no-merged
+  test
+</pre>
+<pre>
+git branch -D test // 브랜치 강제 삭제
+</pre>
+<p>브랜치를 따로 지정하지 않으면 현재 브랜치를 기준으로 Merge 여부를 출력한다.</p>
+<h2>브랜치 워크플로</h2>
+<h3>Long-Running branch</h3>
+<p>
+배포할 코드만 master branch에 두고 안정화하는 브랜치는 develop 혹은 next 라는 이름으로 만들어서 사용한다. 개념적으로 커밋을 가리키는 포인터를 여러개 사용하는 것.
+</p>
+<h3>Topic branch</h3>
+<p>
+브랜치를 새로 만들고 개발한 이후 Merge 시점이 되면 Merge 수행. 각 브랜치는 특정 주제에 특화되어 해당 주제만 다룬다.
+</p>
+<h2>리모트 브랜치</h2>
+<ul>
+<li>리모트 Refs : 리모트 저장소에 있는 포인터인 레퍼런스로, 리모트 저장소에 있는 브랜치, 태그 등을 의미</li>
+<li>리모트 트래킹 브랜치 : 리모트 브랜치를 추적하는 레퍼런스. 로컬에 존재하나, 임의로 움직일 수 없고 리모트 브랜치 업데이트 내용에 따라 자동 갱신. 마지막 연결에 무슨 커밋을 가리켰는지 나타낸다
+</li>
+</ul>
+<pre>
+$ git ls-remote [remote] // 리모트 refs 들을 보여준다
+$ git remote show [remote]
+</pre>
+<p>
+기본적으로 로컬과 서버의 히스토리는 독립적이며 정보 동기화를 위해 git fetch 수행. 로컬에서 커밋한다고 서버에 자동으로 반영되는 것이 아니므로, 동기화 작업이 따로 필요하다.
+</p>
+<pre>
+$ git fetch origin // 리모트 브랜치 정보의 업데이트
+</pre>
+<h3>Push</h3>
+<pre>
+$git push [remote] [branch]:[remote_branch]
+</pre>
+<p>누군가 저장소를 Fetch 하고 나서 서버에 있는 serverfix 브랜치에 접근시, origin/serverfix라는 이름으로 접근할 수 있다. 단 fetch를 통해 리모트 트래킹 브랜치를 받더라도 수정할 수 있는 브랜치가 생기는 것은 아니다. 수정을 허가받지 않는다면 그저 수정불가능한 리모트 트래킹 브랜치를 가지게 되는 것 뿐이다.</p>
+<h3>브랜치 추적</h3>
+<p>리모트 트래킹 브랜치를 로컬로 checkout시 자동으로 트래킹 브랜치가 만들어진다. 이때 git pull 명령을 내리면 리모트 저장소로부터 데이터를 받아 자동으로 Merge 수행한다.
+</p>
+<pre>
+$ git checkout --track origin/serverfix // 로컬 브랜치 이름으로 자동 생성
+$ git checkout -b sf origin/serverfix // 다른 이름으로 브랜치 만들기
+$ git branch -u/--set-upstream-to origin/serverfix : 이미 있는 브랜치와 동기화
+</pre>
+<p>추적 브랜치 설정시  @(upstream), @{u} 로 줄여 슬 수 있다.</p>
+<pre>
+$ git branch -vv // 브랜치 설정 상태 보기
+  iss54  7ce9324 change in iss54
+* master a496ed6 [gt/master: ahead 6] merge
+  test   9229120 test commit
+</pre>
+<p>
+ahead를 통해 로컬 브랜치가 앞서있음을 알 수 있다. 명령 실행시 나타나는 결과는 마지막으로 서버에서 데이터를 가져온 시점을 기준으로 계산하므로 서버의 최신 데이터를 사용하지 않는다.
+</p>
+<pre>
+$ git fetch --all; git branch -vv
+</pre>
+<p>git pull : 단순히 fetch + merge. 따로 사용하는 것이 낫다고 한다.</p>
+<h3>리모트 브랜치 삭제</h3>
+<pre>
+git push origin --delete serverfix
+</pre>
+<p>서버에서 브랜치 하나가 사라진다. GC 동작 이전에는 커밋한 데이터를 살릴 수 있다.</p>
+<h2>Rebase</h2>
+<p>Merge가 공통 조상에 기반한 3-way 병합을 사용하는 것과는 달리, Rebase는 변경사항을 patch로 만들고 이를 대상 브랜치에 적용하는 방식이다.</p>
+<pre>
+$ git rebase [target] //target에 patch를 적용
+$ git checkout master
+$ git merge master
+</pre>
+<ul>
+<li>브랜치 나뉘기 전 공통 커밋으로 이동</li>
+<li>현재까지 checkout한 브랜치가 가리키는 커밋까지 diff 만들고 저장</li>
+<li>대상 브랜치의 커밋을 가리키게 하고 diff 차례대로 적용</li>
+<li>적용된 브랜치에 fast-forward 적용</li>
+</ul>
+<p>
+선형 히스토리를 가지며 병렬 진행시 작업이 순차적으로 수행된 것으로 보인다. 보통 커밋을 깔끔하게 적용하고 싶을 때 사용한다. Rebase는 변경사항을 타 브랜치에 적용한다는 개념이라면 Merge는 단순히 최종 결과물을 합친다는 개념이다. 
+</p>
+<pre>
+$ git rebase --onto master server client //master에 server-client 브랜치를 rebase 
+$ git checkout master //master 브랜치로 이동
+$ git merge client // client를 merge(fast-forward)
+...
+</pre>
+<h3>Rebase의 위험성</h3>
+<p>기본적으로 기존 커밋을 사용하는 것이 아니라 새로운 다른 커밋을 만들기 때문에 다른 인원이 기존 커밋에 기반하여 작업하는 경우 문제가 발생한다. 이 과정에서 중복된 히스토리나 커밋이 발생할 수 있다.</p>
+<h3>Rebase한 것을 다시 Rebase</h3>
+<p>
+patch-id(커밋에 패치할 내용에 대한 SHA-1 체크섬)에 기반하여 코드 판단
+</p>
+<pre>
+$ git fetch
+$ git rebase teamone/master
+$ git pull --rebase // 위 두 코드와 결과가 같다.
+</pre>
+<ul>
+<li>현재 브랜치에만 포함된 커밋 결정</li>
+<li>Merge 커밋 아닌 것 결정</li>
+<li>Merge할 브랜치에 덮어쓰이지 않은 커밋 결정</li>
+<li>결정한 커밋을 대상 브랜치에</li>
+</ul>
+<p>
+이미 공개하여 다른 사람들이 커밋에 참여하는 경우 rebase의 사용을 자제하자. 로컬 브랜치에서 히스토리 정리를 위해 rebase를 수행하더라도 어디에 push한 경우, 절대 Rebase하면 안된다.
+</p>
+<h2>Git 서버</h2>
+<p>지금 당장 필요한 내용이 아니므로(github 사용 예정) 필요시 공부하자.</p>
+<h2>분산 환경의 Git</h2>
